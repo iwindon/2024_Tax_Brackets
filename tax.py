@@ -21,6 +21,8 @@ def calculate_tax(husband_salary, wife_salary, num_children):
     tax += total_salary * tax_brackets[-1][1]
     return locale.currency(tax - child_credit, grouping=True), locale.currency(total_salary, grouping=True)
 
+print("This program calculates the tax liability for 2024.")
+print("Please enter the numbers without commas or dollar signs.")
 husband_salary = float(input("Enter the husband's yearly salary: "))
 wife_salary = float(input("Enter the wife's yearly salary: "))
 num_children = int(input("Enter the number of children: "))
