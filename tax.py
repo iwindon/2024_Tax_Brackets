@@ -21,10 +21,24 @@ def calculate_tax(husband_salary, wife_salary, num_children):
     tax += total_salary * tax_brackets[-1][1]
     return locale.currency(tax - child_credit, grouping=True), locale.currency(total_salary, grouping=True)
 
+def get_float_input(prompt):
+    while True:
+        try:
+            return float(input(prompt))
+        except ValueError:
+            print("Invalid input. Please enter numbers only, no commas or dollar signs.")
+
+def get_int_input(prompt):
+    while True:
+        try:
+            return int(input(prompt))
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+
 print("This program calculates the tax liability for 2024.")
 print("Please enter the numbers without commas or dollar signs.")
-husband_salary = float(input("Enter the husband's yearly salary: "))
-wife_salary = float(input("Enter the wife's yearly salary: "))
-num_children = int(input("Enter the number of children: "))
+husband_salary = get_float_input("Enter the husband's yearly salary: ")
+wife_salary = get_float_input("Enter the wife's yearly salary: ")
+num_children = get_int_input("Enter the number of children: ")
 tax, total_salary = calculate_tax(husband_salary, wife_salary, num_children)
 print(f"The tax liability for 2024 is estimated to be: {tax}")
