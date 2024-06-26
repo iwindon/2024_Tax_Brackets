@@ -3,7 +3,7 @@ import locale
 def calculate_tax(salary, salary2, num_children, filing_status):
     locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
     standard_deduction = 29200 if filing_status == 'married' else 14600
-    child_credit = 2000 * num_children if filing_status == 'married' else 0
+    child_credit = 2000 * num_children
 
     if filing_status == 'married':
         total_salary = salary + salary2 - standard_deduction
@@ -66,10 +66,10 @@ salary = get_float_input("Enter the yearly salary: ")
 
 if filing_status == 'married':
     salary2 = get_float_input("Enter the second yearly salary: ")
-    num_children = get_int_input("Enter the number of children: ")
+    num_children = get_int_input("Enter the number of dependants: ")
 else:
     salary2 = 0
-    num_children = 0
+    num_children = get_int_input("Enter the number of dependants: ")
 
 tax, total_salary = calculate_tax(salary, salary2, num_children, filing_status)
 print(f"The tax liability for 2024 is estimated to be: {tax}")
