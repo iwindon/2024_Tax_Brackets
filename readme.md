@@ -10,11 +10,12 @@ The program takes different inputs based on the filing status:
 
 If you are filing as 'single':
 1. Your yearly salary
+2. How many dependants they have
 
 If you are filing as 'married':
 1. The first spouse's yearly salary
 2. The second spouse's yearly salary
-3. The number of children they have
+3. The number of dependants they have
 
 The program then calculates the total salary. For 'single', it subtracts the standard deduction of $14,600 from the salary. For 'married', it adds the two salaries and subtracts the standard deduction of $29,200.
 
