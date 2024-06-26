@@ -37,7 +37,7 @@ For 'married':
 - 12% for incomes over $23,200
 - 10% for incomes of $23,200 or less
 
-For 'married', the program also subtracts a child credit of $2,000 per child from the tax.
+For 'married', and 'single', the program also subtracts a dependant credit of $2,000 per dependant from the tax.
 
 The program then returns the tax and the total salary after the standard deduction, both formatted as US currency.
 
