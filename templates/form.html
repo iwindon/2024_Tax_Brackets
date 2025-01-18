@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Tax Calculator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Tax Calculator for 2024</h1>
+        <form method="post">
+            <label for="filing_status">Filing Status:</label>
+            <select name="filing_status" id="filing_status">
+                <option value="single">Single</option>
+                <option value="married">Married</option>
+            </select>
+            <label for="salary">Yearly Salary:</label>
+            <input type="text" id="salary" name="salary">
+            <div id="second_salary" style="display:none;">
+                <label for="salary2">Second Yearly Salary:</label>
+                <input type="text" id="salary2" name="salary2">
+            </div>
+            <label for="num_children">Number of Dependants:</label>
+            <input type="text" id="num_children" name="num_children">
+            <input type="submit" value="Calculate">
+        </form>
+    </div>
+    <script>
+        document.getElementById('filing_status').addEventListener('change', function () {
+            var secondSalary = document.getElementById('second_salary');
+            if (this.value === 'married') {
+                secondSalary.style.display = 'block';
+            } else {
+                secondSalary.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

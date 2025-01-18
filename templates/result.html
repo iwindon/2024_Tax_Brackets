@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Tax Calculator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Tax Calculator for 2024</h1>
+        <div class="result">
+            <p>The tax liability for 2024 is estimated to be: {{ tax }}</p>
+            <p>Total Salary after deductions: {{ total_salary }}</p>
+            <a href="/">Calculate Again</a>
+        </div>
+    </div>
+</body>
+</html>
