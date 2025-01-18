@@ -41,17 +41,22 @@ def calculate_tax(salary, salary2, num_children, filing_status):
             (0, 0.10)
         ]
     tax = 0
+    tax_breakdown = []
 
     for i in range(len(tax_brackets)-1):
         if taxable_income > tax_brackets[i][0]:
-            tax += (taxable_income - tax_brackets[i][0]) * tax_brackets[i][1]
+            amount = (taxable_income - tax_brackets[i][0]) * tax_brackets[i][1]
+            tax += amount
+            tax_breakdown.append((tax_brackets[i][0], tax_brackets[i][1], amount))
             taxable_income = tax_brackets[i][0]
-    tax += taxable_income * tax_brackets[-1][1]
+    amount = taxable_income * tax_brackets[-1][1]
+    tax += amount
+    tax_breakdown.append((tax_brackets[-1][0], tax_brackets[-1][1], amount))
     tax -= child_credit
 
     final_salary_after_taxes = total_salary - tax
 
-    return locale.currency(tax, grouping=True), locale.currency(final_salary_after_taxes, grouping=True)
+    return locale.currency(tax, grouping=True), locale.currency(final_salary_after_taxes, grouping=True), tax_breakdown
 
 def validate_inputs(salary, salary2, num_children):
     try:
@@ -76,8 +81,8 @@ def index():
         validated_inputs = validate_inputs(salary, salary2, num_children)
         if validated_inputs:
             salary, salary2, num_children = validated_inputs
-            tax, final_salary_after_taxes = calculate_tax(salary, salary2, num_children, filing_status)
-            return render_template('result.html', tax=tax, final_salary_after_taxes=final_salary_after_taxes)
+            tax, final_salary_after_taxes, tax_breakdown = calculate_tax(salary, salary2, num_children, filing_status)
+            return render_template('result.html', tax=tax, final_salary_after_taxes=final_salary_after_taxes, tax_breakdown=tax_breakdown)
         else:
             flash('Invalid input. Please enter valid numbers and ensure the number of dependents is between 0 and 3.')
             return redirect(url_for('index'))
@@ -85,4 +90,5 @@ def index():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
 

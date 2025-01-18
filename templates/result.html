@@ -10,8 +10,29 @@
         <div class="result">
             <p>The tax liability for 2025 is estimated to be: {{ tax }}</p>
             <p>Final Salary after taxes: {{ final_salary_after_taxes }}</p>
+            <h2>Tax Breakdown</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Bracket</th>
+                        <th>Rate</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bracket, rate, amount in tax_breakdown %}
+                    <tr>
+                        <td>{{ bracket }}</td>
+                        <td>{{ rate * 100 }}%</td>
+                        <td>{{ amount }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
             <a href="/">Calculate Again</a>
         </div>
     </div>
 </body>
 </html>
+
+
