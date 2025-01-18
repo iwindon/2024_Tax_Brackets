@@ -87,21 +87,9 @@ input[type="submit"] {
     color: red;
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
+.notice {
     margin-top: 20px;
-}
-
-table, th, td {
-    border: 1px solid #ccc;
-}
-
-th, td {
-    padding: 10px;
-    text-align: left;
-}
-
-th {
-    background-color: #f4f4f9;
+    font-size: 14px;
+    color: #666;
+    text-align: center;
 }
