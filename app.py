@@ -9,9 +9,11 @@ def calculate_tax(salary, salary2, num_children, filing_status):
     child_credit = 2000 * num_children
 
     if filing_status == 'married':
-        total_salary = salary + salary2 - standard_deduction
+        total_salary = salary + salary2
+        taxable_income = total_salary - standard_deduction
     else:
-        total_salary = salary - standard_deduction
+        total_salary = salary
+        taxable_income = total_salary - standard_deduction
 
     if filing_status == 'single':
         tax_brackets = [
@@ -34,11 +36,15 @@ def calculate_tax(salary, salary2, num_children, filing_status):
     tax = 0
 
     for i in range(len(tax_brackets)-1):
-        if total_salary > tax_brackets[i][0]:
-            tax += (total_salary - tax_brackets[i][0]) * tax_brackets[i][1]
-            total_salary = tax_brackets[i][0]
-    tax += total_salary * tax_brackets[-1][1]
-    return locale.currency(tax - child_credit, grouping=True), locale.currency(total_salary, grouping=True)
+        if taxable_income > tax_brackets[i][0]:
+            tax += (taxable_income - tax_brackets[i][0]) * tax_brackets[i][1]
+            taxable_income = tax_brackets[i][0]
+    tax += taxable_income * tax_brackets[-1][1]
+    tax -= child_credit
+
+    final_salary_after_taxes = total_salary - tax
+
+    return locale.currency(tax, grouping=True), locale.currency(final_salary_after_taxes, grouping=True)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -47,8 +53,8 @@ def index():
         salary = float(request.form['salary'])
         salary2 = float(request.form['salary2']) if filing_status == 'married' else 0
         num_children = int(request.form['num_children'])
-        tax, total_salary = calculate_tax(salary, salary2, num_children, filing_status)
-        return render_template('result.html', tax=tax, total_salary=total_salary)
+        tax, final_salary_after_taxes = calculate_tax(salary, salary2, num_children, filing_status)
+        return render_template('result.html', tax=tax, final_salary_after_taxes=final_salary_after_taxes)
     return render_template('form.html')
 
 if __name__ == '__main__':
