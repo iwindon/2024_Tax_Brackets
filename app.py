@@ -5,7 +5,7 @@ app = Flask(__name__)
 
 def calculate_tax(salary, salary2, num_children, filing_status):
     locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
-    standard_deduction = 29200 if filing_status == 'married' else 14600
+    standard_deduction = 30000 if filing_status == 'married' else 15000
     child_credit = 2000 * num_children
 
     if filing_status == 'married':
@@ -17,20 +17,22 @@ def calculate_tax(salary, salary2, num_children, filing_status):
 
     if filing_status == 'single':
         tax_brackets = [
-            (243725, 0.35),
-            (191950, 0.32),
-            (100525, 0.24),
-            (47150, 0.22),
-            (11600, 0.12),
+            (626350, 0.37),
+            (250525, 0.35),
+            (197300, 0.32),
+            (103350, 0.24),
+            (48475, 0.22),
+            (11925, 0.12),
             (0, 0.10)
         ]
     elif filing_status == 'married':
         tax_brackets = [
-            (487450, 0.35),
-            (383900, 0.32),
-            (201050, 0.24),
-            (94300, 0.22),
-            (23200, 0.12),
+            (751600, 0.37),
+            (501050, 0.35),
+            (394600, 0.32),
+            (206700, 0.24),
+            (96950, 0.22),
+            (23850, 0.12),
             (0, 0.10)
         ]
     tax = 0
