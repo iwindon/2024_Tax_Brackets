@@ -1,7 +1,12 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, flash, redirect, url_for
 import locale
+import logging
 
 app = Flask(__name__)
+app.secret_key = 'supersecretkey'  # Needed for flashing messages
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
 def calculate_tax(salary, salary2, num_children, filing_status):
     locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
@@ -48,15 +53,32 @@ def calculate_tax(salary, salary2, num_children, filing_status):
 
     return locale.currency(tax, grouping=True), locale.currency(final_salary_after_taxes, grouping=True)
 
+def validate_inputs(salary, salary2, num_children):
+    try:
+        salary = float(salary)
+        if salary2:
+            salary2 = float(salary2)
+        num_children = int(num_children)
+        return salary, salary2, num_children
+    except ValueError:
+        return None
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
         filing_status = request.form['filing_status']
-        salary = float(request.form['salary'])
-        salary2 = float(request.form['salary2']) if filing_status == 'married' else 0
-        num_children = int(request.form['num_children'])
-        tax, final_salary_after_taxes = calculate_tax(salary, salary2, num_children, filing_status)
-        return render_template('result.html', tax=tax, final_salary_after_taxes=final_salary_after_taxes)
+        salary = request.form['salary']
+        salary2 = request.form['salary2'] if filing_status == 'married' else 0
+        num_children = request.form['num_children']
+
+        validated_inputs = validate_inputs(salary, salary2, num_children)
+        if validated_inputs:
+            salary, salary2, num_children = validated_inputs
+            tax, final_salary_after_taxes = calculate_tax(salary, salary2, num_children, filing_status)
+            return render_template('result.html', tax=tax, final_salary_after_taxes=final_salary_after_taxes)
+        else:
+            flash('Invalid input. Please enter valid numbers.')
+            return redirect(url_for('index'))
     return render_template('form.html')
 
 if __name__ == '__main__':
