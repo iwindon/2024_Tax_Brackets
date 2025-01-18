@@ -22,9 +22,9 @@
                 <tbody>
                     {% for bracket, rate, amount in tax_breakdown %}
                     <tr>
-                        <td>{{ bracket }}</td>
+                        <td>{{ bracket | currency }}</td>
                         <td>{{ rate * 100 }}%</td>
-                        <td>{{ amount }}</td>
+                        <td>{{ amount | currency }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -34,5 +34,3 @@
     </div>
 </body>
 </html>
-
-

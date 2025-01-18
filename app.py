@@ -8,8 +8,15 @@ app.secret_key = 'supersecretkey'  # Needed for flashing messages
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
+# Set locale for currency formatting
+locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+
+# Custom filter for currency formatting
+@app.template_filter('currency')
+def currency_filter(value):
+    return locale.currency(value, grouping=True)
+
 def calculate_tax(salary, salary2, num_children, filing_status):
-    locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
     standard_deduction = 30000 if filing_status == 'married' else 15000
     child_credit = 2000 * num_children
 
@@ -90,5 +97,3 @@ def index():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-
