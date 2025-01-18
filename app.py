@@ -59,6 +59,8 @@ def validate_inputs(salary, salary2, num_children):
         if salary2:
             salary2 = float(salary2)
         num_children = int(num_children)
+        if num_children < 0 or num_children > 3:
+            return None
         return salary, salary2, num_children
     except ValueError:
         return None
@@ -77,9 +79,10 @@ def index():
             tax, final_salary_after_taxes = calculate_tax(salary, salary2, num_children, filing_status)
             return render_template('result.html', tax=tax, final_salary_after_taxes=final_salary_after_taxes)
         else:
-            flash('Invalid input. Please enter valid numbers.')
+            flash('Invalid input. Please enter valid numbers and ensure the number of dependents is between 0 and 3.')
             return redirect(url_for('index'))
     return render_template('form.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
+
