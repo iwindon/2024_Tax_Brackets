@@ -17,8 +17,8 @@ def currency_filter(value):
     return locale.currency(value, grouping=True)
 
 def calculate_tax(salary, salary2, num_children, filing_status):
-    standard_deduction = 30000 if filing_status == 'married' else 15000
-    child_credit = 2000 * num_children
+    standard_deduction = 32200 if filing_status == 'married' else 16100
+    child_credit = 2200 * num_children
 
     if filing_status == 'married':
         total_salary = salary + salary2
@@ -29,22 +29,22 @@ def calculate_tax(salary, salary2, num_children, filing_status):
 
     if filing_status == 'single':
         tax_brackets = [
-            (626350, 0.37),
-            (250525, 0.35),
-            (197300, 0.32),
-            (103350, 0.24),
-            (48475, 0.22),
-            (11925, 0.12),
+            (640600, 0.37),
+            (256225, 0.35),
+            (201775, 0.32),
+            (105700, 0.24),
+            (50400, 0.22),
+            (12400, 0.12),
             (0, 0.10)
         ]
     elif filing_status == 'married':
         tax_brackets = [
-            (751600, 0.37),
-            (501050, 0.35),
-            (394600, 0.32),
-            (206700, 0.24),
-            (96950, 0.22),
-            (23850, 0.12),
+            (768700, 0.37),
+            (512450, 0.35),
+            (403550, 0.32),
+            (211400, 0.24),
+            (100800, 0.22),
+            (24800, 0.12),
             (0, 0.10)
         ]
     tax = 0
