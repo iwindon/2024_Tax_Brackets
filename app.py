@@ -61,6 +61,7 @@ def calculate_tax(salary, salary2, num_children, filing_status):
     tax_breakdown.append((tax_brackets[-1][0], tax_brackets[-1][1], amount))
     tax -= child_credit
 
+
     final_salary_after_taxes = total_salary - tax
 
     return locale.currency(tax, grouping=True), locale.currency(final_salary_after_taxes, grouping=True), tax_breakdown
