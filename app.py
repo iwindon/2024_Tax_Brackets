@@ -132,7 +132,7 @@ def calculate_tax(salary, salary2, num_children, filing_status):
             break
         lower_bound = float(cap)
 
-    child_credit = 2000 * num_children
+    child_credit = 2200 * num_children
     tax_liability = max(0.0, gross_tax - child_credit)
     final_salary_after_taxes = total_salary - tax_liability
 
