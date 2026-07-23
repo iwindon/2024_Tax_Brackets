@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, flash, redirect, url_for
+from flask import Flask, request, render_template, flash
 import locale
 import logging
 
@@ -9,92 +9,210 @@ app.secret_key = 'supersecretkey'  # Needed for flashing messages
 logging.basicConfig(level=logging.INFO)
 
 # Set locale for currency formatting
-locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+try:
+    locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+except locale.Error:
+    # Windows often does not have this locale string installed.
+    pass
+
+FILING_STATUSES = {
+    'single': {
+        'label': 'Single',
+        'standard_deduction': 16100,
+        'requires_second_salary': False,
+        'brackets': [
+            (12400, 0.10),
+            (50400, 0.12),
+            (105700, 0.22),
+            (201775, 0.24),
+            (256225, 0.32),
+            (640600, 0.35),
+            (None, 0.37),
+        ],
+    },
+    'married_joint': {
+        'label': 'Married Filing Jointly',
+        'standard_deduction': 32200,
+        'requires_second_salary': True,
+        'brackets': [
+            (24800, 0.10),
+            (100800, 0.12),
+            (211400, 0.22),
+            (403550, 0.24),
+            (512450, 0.32),
+            (768700, 0.35),
+            (None, 0.37),
+        ],
+    },
+    'married_separate': {
+        'label': 'Married Filing Separately',
+        'standard_deduction': 16100,
+        'requires_second_salary': False,
+        'brackets': [
+            (12400, 0.10),
+            (50400, 0.12),
+            (105700, 0.22),
+            (201775, 0.24),
+            (256225, 0.32),
+            (384350, 0.35),
+            (None, 0.37),
+        ],
+    },
+    'head_household': {
+        'label': 'Head of Household',
+        'standard_deduction': 24150,
+        'requires_second_salary': False,
+        'brackets': [
+            (17700, 0.10),
+            (67600, 0.12),
+            (105700, 0.22),
+            (201775, 0.24),
+            (256225, 0.32),
+            (640600, 0.35),
+            (None, 0.37),
+        ],
+    },
+    'qualifying_surviving_spouse': {
+        'label': 'Qualifying Surviving Spouse',
+        'standard_deduction': 32200,
+        'requires_second_salary': False,
+        'brackets': [
+            (24800, 0.10),
+            (100800, 0.12),
+            (211400, 0.22),
+            (403550, 0.24),
+            (512450, 0.32),
+            (768700, 0.35),
+            (None, 0.37),
+        ],
+    },
+}
 
 # Custom filter for currency formatting
 @app.template_filter('currency')
 def currency_filter(value):
-    return locale.currency(value, grouping=True)
+    try:
+        return f"${float(value):,.2f}"
+    except (TypeError, ValueError):
+        return '$0.00'
+
+def parse_currency(value):
+    cleaned = (value or '').replace(',', '').replace('$', '').strip()
+    return float(cleaned)
+
 
 def calculate_tax(salary, salary2, num_children, filing_status):
-    standard_deduction = 32200 if filing_status == 'married' else 16100
-    child_credit = 2200 * num_children
+    status = FILING_STATUSES[filing_status]
+    standard_deduction = status['standard_deduction']
+    total_salary = salary + salary2
+    taxable_income = max(0.0, total_salary - standard_deduction)
 
-    if filing_status == 'married':
-        total_salary = salary + salary2
-        taxable_income = total_salary - standard_deduction
-    else:
-        total_salary = salary
-        taxable_income = total_salary - standard_deduction
-
-    if filing_status == 'single':
-        tax_brackets = [
-            (640600, 0.37),
-            (256225, 0.35),
-            (201775, 0.32),
-            (105700, 0.24),
-            (50400, 0.22),
-            (12400, 0.12),
-            (0, 0.10)
-        ]
-    elif filing_status == 'married':
-        tax_brackets = [
-            (768700, 0.37),
-            (512450, 0.35),
-            (403550, 0.32),
-            (211400, 0.24),
-            (100800, 0.22),
-            (24800, 0.12),
-            (0, 0.10)
-        ]
-    tax = 0
+    gross_tax = 0.0
     tax_breakdown = []
+    lower_bound = 0.0
 
-    for i in range(len(tax_brackets)-1):
-        if taxable_income > tax_brackets[i][0]:
-            amount = (taxable_income - tax_brackets[i][0]) * tax_brackets[i][1]
-            tax += amount
-            tax_breakdown.append((tax_brackets[i][0], tax_brackets[i][1], amount))
-            taxable_income = tax_brackets[i][0]
-    amount = taxable_income * tax_brackets[-1][1]
-    tax += amount
-    tax_breakdown.append((tax_brackets[-1][0], tax_brackets[-1][1], amount))
-    tax -= child_credit
+    for cap, rate in status['brackets']:
+        upper_bound = taxable_income if cap is None else min(taxable_income, cap)
+        taxed_amount = max(0.0, upper_bound - lower_bound)
 
+        if taxed_amount > 0:
+            bracket_tax = taxed_amount * rate
+            gross_tax += bracket_tax
+            tax_breakdown.append(
+                {
+                    'lower': lower_bound,
+                    'upper': upper_bound,
+                    'rate': rate,
+                    'taxed_amount': taxed_amount,
+                    'tax': bracket_tax,
+                }
+            )
 
-    final_salary_after_taxes = total_salary - tax
+        if cap is None or taxable_income <= cap:
+            break
+        lower_bound = float(cap)
 
-    return locale.currency(tax, grouping=True), locale.currency(final_salary_after_taxes, grouping=True), tax_breakdown
+    child_credit = 2000 * num_children
+    tax_liability = max(0.0, gross_tax - child_credit)
+    final_salary_after_taxes = total_salary - tax_liability
 
-def validate_inputs(salary, salary2, num_children):
+    return {
+        'filing_status_label': status['label'],
+        'total_income': total_salary,
+        'standard_deduction': standard_deduction,
+        'taxable_income': taxable_income,
+        'gross_tax': gross_tax,
+        'child_credit': child_credit,
+        'tax_liability': tax_liability,
+        'final_salary_after_taxes': final_salary_after_taxes,
+        'tax_breakdown': tax_breakdown,
+    }
+
+def validate_inputs(salary, salary2, num_children, filing_status):
+    errors = []
+
+    if filing_status not in FILING_STATUSES:
+        return None, ['Invalid filing status selected.']
+
+    status = FILING_STATUSES[filing_status]
+
     try:
-        salary = float(salary)
-        if salary2:
-            salary2 = float(salary2)
-        num_children = int(num_children)
-        if num_children < 0 or num_children > 3:
-            return None
-        return salary, salary2, num_children
+        salary = parse_currency(salary)
+        if salary < 0:
+            errors.append('Salary cannot be negative.')
     except ValueError:
-        return None
+        errors.append('Primary salary must be a valid number.')
+        salary = 0.0
+
+    try:
+        salary2 = parse_currency(salary2) if salary2 else 0.0
+        if salary2 < 0:
+            errors.append('Second salary cannot be negative.')
+    except ValueError:
+        errors.append('Second salary must be a valid number.')
+        salary2 = 0.0
+
+    if status['requires_second_salary'] and salary2 == 0:
+        errors.append('Second salary is required for Married Filing Jointly.')
+
+    try:
+        num_children = int(num_children)
+        if num_children < 0:
+            errors.append('Number of qualifying children cannot be negative.')
+    except ValueError:
+        errors.append('Number of qualifying children must be a whole number.')
+        num_children = 0
+
+    if errors:
+        return None, errors
+
+    return (salary, salary2, num_children), []
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        filing_status = request.form['filing_status']
-        salary = request.form['salary']
-        salary2 = request.form['salary2'] if filing_status == 'married' else 0
-        num_children = request.form['num_children']
+        filing_status = request.form.get('filing_status', 'single')
+        salary = request.form.get('salary', '')
+        salary2 = request.form.get('salary2', '')
+        num_children = request.form.get('num_children', '0')
 
-        validated_inputs = validate_inputs(salary, salary2, num_children)
+        form_data = {
+            'filing_status': filing_status,
+            'salary': salary,
+            'salary2': salary2,
+            'num_children': num_children,
+        }
+
+        validated_inputs, errors = validate_inputs(salary, salary2, num_children, filing_status)
         if validated_inputs:
             salary, salary2, num_children = validated_inputs
-            tax, final_salary_after_taxes, tax_breakdown = calculate_tax(salary, salary2, num_children, filing_status)
-            return render_template('result.html', tax=tax, final_salary_after_taxes=final_salary_after_taxes, tax_breakdown=tax_breakdown)
+            result = calculate_tax(salary, salary2, num_children, filing_status)
+            return render_template('result.html', result=result)
         else:
-            flash('Invalid input. Please enter valid numbers and ensure the number of dependents is between 0 and 3.')
-            return redirect(url_for('index'))
-    return render_template('form.html')
+            for error in errors:
+                flash(error)
+            return render_template('form.html', form_data=form_data, filing_statuses=FILING_STATUSES)
+    return render_template('form.html', form_data={}, filing_statuses=FILING_STATUSES)
 
 if __name__ == '__main__':
     app.run(debug=True)

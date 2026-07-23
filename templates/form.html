@@ -19,32 +19,33 @@
         <form method="post">
             <label for="filing_status">Filing Status:</label>
             <select name="filing_status" id="filing_status">
-                <option value="single">Single</option>
-                <option value="married">Married</option>
+                {% for code, status in filing_statuses.items() %}
+                <option value="{{ code }}" {% if form_data.get('filing_status', 'single') == code %}selected{% endif %}>{{ status.label }}</option>
+                {% endfor %}
             </select>
             <label for="salary">Yearly Salary:</label>
-            <input type="text" id="salary" name="salary">
+            <input type="text" id="salary" name="salary" value="{{ form_data.get('salary', '') }}" placeholder="e.g., 85000">
             <div id="second_salary" style="display:none;">
                 <label for="salary2">Second Yearly Salary:</label>
-                <input type="text" id="salary2" name="salary2">
+                <input type="text" id="salary2" name="salary2" value="{{ form_data.get('salary2', '') }}" placeholder="Required for Married Filing Jointly">
             </div>
-            <label for="num_children">Number of Dependants:</label>
-            <input type="number" id="num_children" name="num_children" min="0" max="3">
+            <label for="num_children">Number of Qualifying Children (for child tax credit):</label>
+            <input type="number" id="num_children" name="num_children" min="0" value="{{ form_data.get('num_children', 0) }}">
             <input type="submit" value="Calculate">
         </form>
         <div class="notice">
-            <p>Note: This program uses single or filing as married only, assumes standard deductions, and is still under development. No guarantees are given on the validity of the results.</p>
+            <p>Note: Uses standard deduction and child tax credit only. This is an estimate of federal income tax liability for 2026 using the configured brackets.</p>
         </div>
     </div>
     <script>
-        document.getElementById('filing_status').addEventListener('change', function () {
+        function toggleSecondSalary() {
+            var filingStatus = document.getElementById('filing_status').value;
             var secondSalary = document.getElementById('second_salary');
-            if (this.value === 'married') {
-                secondSalary.style.display = 'block';
-            } else {
-                secondSalary.style.display = 'none';
-            }
-        });
+            secondSalary.style.display = filingStatus === 'married_joint' ? 'block' : 'none';
+        }
+
+        document.getElementById('filing_status').addEventListener('change', toggleSecondSalary);
+        toggleSecondSalary();
     </script>
 </body>
 </html>

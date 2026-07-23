@@ -8,23 +8,31 @@
     <div class="container">
         <h1>Tax Calculator for 2026</h1>
         <div class="result">
-            <p>The tax liability for 2026 is estimated to be: {{ tax }}</p>
-            <p>Final Salary after taxes: {{ final_salary_after_taxes }}</p>
+            <p>Filing Status: {{ result.filing_status_label }}</p>
+            <p>Total Income: {{ result.total_income | currency }}</p>
+            <p>Standard Deduction: {{ result.standard_deduction | currency }}</p>
+            <p>Taxable Income: {{ result.taxable_income | currency }}</p>
+            <p>Tax Before Credits: {{ result.gross_tax | currency }}</p>
+            <p>Child Tax Credit: {{ result.child_credit | currency }}</p>
+            <p>The tax liability for 2026 is estimated to be: {{ result.tax_liability | currency }}</p>
+            <p>Final Salary after federal income tax: {{ result.final_salary_after_taxes | currency }}</p>
             <h2>Tax Breakdown</h2>
             <table>
                 <thead>
                     <tr>
                         <th>Bracket</th>
                         <th>Rate</th>
-                        <th>Amount</th>
+                        <th>Taxed Income</th>
+                        <th>Tax in Bracket</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for bracket, rate, amount in tax_breakdown %}
+                    {% for item in result.tax_breakdown %}
                     <tr>
-                        <td>{{ bracket | currency }}</td>
-                        <td>{{ rate * 100 }}%</td>
-                        <td>{{ amount | currency }}</td>
+                        <td>{{ item.lower | currency }} to {{ item.upper | currency }}</td>
+                        <td>{{ (item.rate * 100) | round(0) }}%</td>
+                        <td>{{ item.taxed_amount | currency }}</td>
+                        <td>{{ item.tax | currency }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
